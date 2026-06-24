@@ -1,0 +1,12 @@
+# uv / virtualenv
+.venv/
+
+# vendored upstream code + downloaded weights/data (fetched by src/download.py)
+vendor/
+
+# training outputs (checkpoints, tensorboard)
+runs/
+
+# python
+__pycache__/
+*.pyc

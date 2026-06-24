@@ -1,0 +1,44 @@
+# --- core DL stack ---
+numpy==1.26.4
+torch==2.2.0
+torchvision==0.17.0
+torchaudio==2.2.0
+transformers==4.40.1
+tokenizers==0.19.1
+peft==0.11.1
+timm==0.9.10
+accelerate
+safetensors
+sentencepiece==0.1.99
+einops
+draccus==0.8.0
+huggingface_hub
+tensorboard
+jsonlines
+rich
+wandb==0.19.8
+msgpack
+msgpack_numpy
+
+# --- RLDS / TFDS data pipeline (prismatic.vla.datasets) ---
+tensorflow==2.15.0
+tensorflow_datasets==4.9.3
+tensorflow_graphics==2021.12.3
+tensorflow-metadata==1.16.1
+protobuf==3.20.3
+dlimp @ git+https://github.com/moojink/dlimp_openvla   # RLDS transforms
+
+# --- LIBERO simulator (eval)
+mujoco==3.3.0          # MUST be 3.3.0 (3.9.0 breaks LIBERO task-6)
+robosuite==1.4.1       # also pulls in opencv-python (its declared dep)
+bddl
+easydict
+cloudpickle
+gym
+imageio[ffmpeg]
+matplotlib             # imported by vendor/LIBERO/libero/libero/envs/env_wrapper.py
+opencv-python          # robosuite/LIBERO rendering (also a robosuite dep; listed for clarity)
+future                 # py2/3 compat shim some LIBERO modules pull in
+
+# --- flash-attn
+flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.5/flash_attn-2.5.5+cu122torch2.2cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
