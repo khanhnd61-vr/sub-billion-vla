@@ -2,9 +2,13 @@
 
 ## Baseline model
 
-A **minimal, faithful** reproduction of **VLA-Adapter** ([arXiv 2509.09372](https://arxiv.org/abs/2509.09372)). The novel part - learnable ActionQuery tokens, the **Bridge-Attention** policy, and L1-regression train/eval - lives here; the heavy infrastructure (DINOv2+SigLIP+Qwen2.5-0.5B backbone, RLDS pipeline, LIBERO simulator) is reused (`src/download.py` git-clones `VLA-Adapter` + `LIBERO` into `./vendor`).
+A **minimal, faithful** reproduction of **VLA-Adapter** ([arXiv 2509.09372](https://arxiv.org/abs/2509.09372)).
 
-A frozen ~0.5B **Prismatic MiniVLM** (DINOv2 ViT-L + SigLIP SO400M @224px; Qwen2.5-0.5B, hidden **896**, 24 layers) is adapted only via **LoRA r64** plus **64 learnable ActionQuery tokens**. One forward with `output_hidden_states=True` yields, per layer, the **512 vision "task" tokens** (`h_t`) and **64 ActionQuery tokens** (`h_a`), stacked to `(B, 25, 576, 896)`. The **Bridge policy** (`L1RegressionActionHead`) is a 24-block MLP-ResNet over a learnable action-chunk seed; block *i* cross-attends to layer *i+1*'s `h_t` (gated by `tanh(g)`) and `h_a` (+ proprio), emitting an `(B, 8, 7)` chunk trained with **L1**. Only LoRA + ActionQuery + Bridge + proprio projector train (**≈207M**, ~14%); the rest is frozen.
+  - A frozen ~0.5B **Prismatic MiniVLM** (DINOv2 ViT-L + SigLIP SO400M @224px; Qwen2.5-0.5B, hidden **896**, 24 layers) adapted via **LoRA r64**
+  -  **64 learnable ActionQuery tokens** (`h_a`) stacked with **512 VLM tokens** (`h_t`). 
+  - A **Bridge policy** (`L1RegressionActionHead`), which is a 24-block MLP-ResNet over a learnable action-chunk seed; block *i* cross-attends to layer *i+1*'s `h_t` (gated by `tanh(g)`) and `h_a` (+ proprio), emitting an `(B, 8, 7)` chunk trained with **L1**.
+  
+Only LoRA + ActionQuery + Bridge + proprio projector train (**≈207M**, ~14%); the rest is frozen.
 
 ## Setup
 
@@ -49,16 +53,15 @@ in particular here (we save adapters, not full merged models, so there's no merg
 
 ## Evaluate
 
-Run 10 tasks × 50 episodes = **500**, printing per-task and `Overall success rate:` (parseable by
-the repo's `parse_eval.py`). **Eval requires mujoco==3.3.0.**
+Run 10 tasks × 50 episodes = 500. **Eval requires mujoco==3.3.0.**
 
 ```bash
 MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 python src/eval.py --ckpt runs/spatial-original/step_16000_chkpt
 ```
 
-### Expected results (LIBERO-Spatial, 500 ep, mujoco 3.3.0)
+### Expected result on LIBERO-Spatial
 
-| | success rate |
+| | SR |
 |---|---|
 | Paper (Original) | 97.8% |
 | Eval authors' released checkpoint | 97.2% |
