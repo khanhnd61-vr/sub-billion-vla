@@ -55,8 +55,6 @@ def clone_vendored_code():
 
 
 def download_backbone():
-    # The VLA-Adapter clone ships a placeholder README in this dir, so a plain "non-empty" (_have)
-    # check would wrongly skip the download. Key off config.json, which only the real weights provide.
     if (C.VLM_PATH / "config.json").exists():
         print(f"[skip] backbone already at {C.VLM_PATH}")
         return

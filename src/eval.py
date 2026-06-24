@@ -3,15 +3,11 @@ eval.py - evaluate a trained checkpoint on LIBERO-Spatial (10 tasks x 50 episode
 
 HYBRID: the LIBERO simulator + the proven inference/rollout (`run_task` -> `get_action` ->
 `get_vla_action`, image prep, proprio normalization, action un-normalization, success counting)
-are REUSED from the parent repo. We only build the model from OUR adapter-format checkpoint
+are REUSED from the VLA-Adapter repo. We only build the model from OUR adapter-format checkpoint
 (model.load_for_eval) and drive the per-task loop.
 
-IMPORTANT: eval REQUIRES mujoco==3.3.0 (3.9.0 changes stacked-contact dynamics and drops task-6
-from ~96% to ~50%). Run with EGL headless rendering:
+IMPORTANT: eval REQUIRES mujoco==3.3.0. Run with EGL rendering:
   MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 python src/eval.py --ckpt runs/spatial-original/step_16000_chkpt
-
-The printed "Current task success rate:" / "Overall success rate:" lines are compatible with the
-repo's parse_eval.py.
 """
 import argparse
 import os
@@ -42,7 +38,6 @@ def main():
     args = parse_args()
     device = torch.device("cuda:0")
 
-    # Phase-1 eval config (matches the recipe; mirrors the repo's released-ckpt eval flags).
     cfg = GenerateConfig(
         pretrained_checkpoint=args.ckpt,
         model_family="openvla",

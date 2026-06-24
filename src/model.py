@@ -1,5 +1,5 @@
 """
-model.py - the VLA-Adapter model wrapper (Phase-1 / Original variant).
+model.py - the VLA-Adapter model wrapper
 
 HYBRID design: the heavy, well-tested backbone (DINOv2+SigLIP vision, Qwen2.5-0.5B LLM, the
 multimodal assembly, and the learnable ActionQuery tokens) is REUSED from the parent
@@ -8,27 +8,25 @@ frozen VLM, runs the single forward that yields per-layer hidden states, and han
 Bridge policy in policy.py. The forward here is a faithful, single-GPU re-expression of
 `run_forward_pass` in `vla-scripts/finetune.py`.
 
-What is trained (≈207M): LoRA r64 (all-linear) + ActionQuery + Bridge policy + proprio projector.
-Everything else (vision towers, projector, LLM) is frozen.
+Trainable modules (~207M): LoRA r64 (all-linear) + ActionQuery + Bridge policy + proprio projector.
+Vision encoders, projector, and LLM are frozen.
 """
 from pathlib import Path
 
 import torch
 import torch.nn as nn
 
-import constants as C  # noqa: F401
+import policy                                                                                    # noqa: E402
+import constants as C                                                                            # noqa: F401
+from peft import LoraConfig, PeftModel, get_peft_model                                           # noqa: E402
+from transformers import AutoConfig, AutoImageProcessor, AutoModelForVision2Seq, AutoProcessor   # noqa: E402
+from prismatic.extern.hf.configuration_prismatic import OpenVLAConfig                            # noqa: E402
+from prismatic.extern.hf.modeling_prismatic import OpenVLAForActionPrediction                    # noqa: E402
+from prismatic.extern.hf.processing_prismatic import PrismaticImageProcessor, PrismaticProcessor # noqa: E402
+from prismatic.models import load                                                                # noqa: E402
+from prismatic.training.train_utils import get_current_action_mask, get_next_actions_mask        # noqa: E402
+from prismatic.vla.datasets.rlds.utils.data_utils import save_dataset_statistics                 # noqa: E402
 
-from peft import LoraConfig, PeftModel, get_peft_model  # noqa: E402
-from transformers import AutoConfig, AutoImageProcessor, AutoModelForVision2Seq, AutoProcessor  # noqa: E402
-
-from prismatic.extern.hf.configuration_prismatic import OpenVLAConfig  # noqa: E402
-from prismatic.extern.hf.modeling_prismatic import OpenVLAForActionPrediction  # noqa: E402
-from prismatic.extern.hf.processing_prismatic import PrismaticImageProcessor, PrismaticProcessor  # noqa: E402
-from prismatic.models import load  # noqa: E402
-from prismatic.training.train_utils import get_current_action_mask, get_next_actions_mask  # noqa: E402
-from prismatic.vla.datasets.rlds.utils.data_utils import save_dataset_statistics  # noqa: E402
-
-import policy  # noqa: E402
 
 # Keys differ between the released Prismatic VLM state-dict and the HF OpenVLA module; remap on load.
 _REPLACE_MAP = [

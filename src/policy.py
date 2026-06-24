@@ -1,11 +1,7 @@
 """
 policy.py - the VLA-Adapter "Policy": Bridge-Attention + L1-regression action head + proprio projector.
 
-This is the *novel* part of VLA-Adapter and the only large module trained from scratch
-(~97M params). It is a faithful, trimmed copy of `prismatic/models/action_heads.py` +
-`prismatic/models/projectors.py` for the **Original** variant only (the `use_pro_version=True`
-path with RoPE/FiLM is dropped for clarity). Module/parameter names are kept identical to the
-parent repo so checkpoints are interchangeable.
+This is the novel part of VLA-Adapter and the only large module trained from scratch (~97M params).
 
 The Bridge idea: the VLM is run once with `output_hidden_states=True`, giving one hidden-state
 tensor per layer. We keep, at every layer, the 512 vision "task" tokens (h_t) and the 64

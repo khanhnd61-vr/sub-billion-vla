@@ -1,9 +1,9 @@
 """
 data.py - LIBERO-Spatial training dataloader.
 
-HYBRID: we reuse the parent repo's battle-tested RLDS/TFDS pipeline verbatim (chunking,
+HYBRID: we reuse the VLA-Adapter's battle-tested RLDS/TFDS pipeline verbatim (chunking,
 bounds_q99 normalization, image aug, the action-token + prompt construction). This file just
-wires those pieces together with the Phase-1 settings and yields the collated batch dict:
+wires those pieces together and yields the collated batch dict:
     input_ids, attention_mask, pixel_values (B, 12, 224, 224), labels, actions (B,8,7), proprio.
 """
 import constants as C                                                    # noqa: F401

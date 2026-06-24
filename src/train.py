@@ -1,5 +1,5 @@
 """
-train.py - fine-tune VLA-Adapter (Original variant) on LIBERO-Spatial. Single GPU (RTX 3090, 24GB).
+train.py - fine-tune VLA-Adapter (Original variant) on LIBERO-Spatial.
 
 Recipe: frozen MiniVLM + LoRA r64 (all-linear) + ActionQuery +
 Bridge policy + proprio, trained with L1 regression on 8-step action chunks. AdamW @ constant 2e-4,
@@ -7,7 +7,7 @@ bf16, effective batch 16 (batch 4 x grad-accum 4). Converges by ~11-20k steps (p
 
 Run from the sub-billion-vla/ directory:
     MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 python src/train.py --run_dir runs/spatial-original
-After any crash just re-run with --resume_adapter <latest_ckpt>/adapter (LoRA re-inits; see README).
+Resume training with --resume_adapter <latest_ckpt>/adapter (LoRA re-inits).
 """
 import argparse
 import os

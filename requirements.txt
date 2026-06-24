@@ -26,19 +26,20 @@ tensorflow_datasets==4.9.3
 tensorflow_graphics==2021.12.3
 tensorflow-metadata==1.16.1
 protobuf==3.20.3
-dlimp @ git+https://github.com/moojink/dlimp_openvla   # RLDS transforms
+dlimp @ git+https://github.com/moojink/dlimp_openvla
 
 # --- LIBERO simulator (eval)
-mujoco==3.3.0          # MUST be 3.3.0 (3.9.0 breaks LIBERO task-6)
-robosuite==1.4.1       # also pulls in opencv-python (its declared dep)
+mujoco==3.3.0
+robosuite==1.4.1
 bddl
 easydict
 cloudpickle
 gym
 imageio[ffmpeg]
-matplotlib             # imported by vendor/LIBERO/libero/libero/envs/env_wrapper.py
-opencv-python          # robosuite/LIBERO rendering (also a robosuite dep; listed for clarity)
-future                 # py2/3 compat shim some LIBERO modules pull in
+matplotlib
+opencv-python
+future
+json-numpy
 
 # --- flash-attn
 flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.5/flash_attn-2.5.5+cu122torch2.2cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
