@@ -73,12 +73,12 @@ A healthy run shows roughly **1k≈33%, 2k≈45%, 3k≈63%, 4k≈75%**, then a 9
 
 ## 2. SmolVLA baseline (lerobot)
 
-A second sub-billion baseline: finetune HuggingFace's **SmolVLA** (`lerobot/smolvla_base`, ~450M;
-SmolVLM2 backbone + flow-matching action expert) on LIBERO. This path is entirely lerobot-native —
-its train/eval are single CLI commands that pull `lerobot/smolvla_base` and the
-[`HuggingFaceVLA/libero`](https://huggingface.co/datasets/HuggingFaceVLA/libero) dataset from the
-Hub — and shares nothing with the VLA-Adapter stack above. It therefore lives in its **own
-virtualenv** (lerobot needs a much newer transformers/torch than `requirements.txt` pins).
+A second sub-billion baseline: finetune HuggingFace's [SmolVLA](https://arxiv.org/abs/2506.01844)
+(~450M); SmolVLM2 backbone + flow-matching action expert).
+This path is entirely lerobot-native - its train/eval are single CLI commands that pull
+[`lerobot/smolvla_base`](https://huggingface.co/lerobot/smolvla_base) and the
+[`HuggingFaceVLA/libero`](https://huggingface.co/datasets/HuggingFaceVLA/libero) dataset from the Hub,
+and shares nothing with the VLA-Adapter stack above. It therefore lives in its own virtualenv.
 
 ### Setup
 Use a **separate** venv from the VLA-Adapter stack (lerobot needs a much newer transformers/torch
@@ -103,12 +103,11 @@ MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-train \
   --policy.device=cuda \
   --policy.use_amp=true \
   --policy.push_to_hub=false \
-  --steps=100000 \
+  --steps=40000 \
   --save_freq=5000 \
   --output_dir=outputs/smolvla-libero \
   --job_name=smolvla-libero \
-  --wandb.enable=true \
-  --batch_size=4
+  --batch_size=64
 ```
 
 This recipe reuses the pretrained VLM and learns the fresh action expert on LIBERO.
@@ -130,3 +129,12 @@ MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-eval \
 The SmolVLA policy trained on `HuggingFaceVLA/libero` expects **relative** (delta) end-effector
 actions, which is lerobot's default `--env.control_mode`; leave it unless you retrain on an
 absolute-action dataset.
+
+#### Result
+
+| Task | SR |
+|---|---|
+| Object  | T.B.D |
+| Goal    | T.B.D |
+| Spatial | T.B.D |
+| Long    | T.B.D |
