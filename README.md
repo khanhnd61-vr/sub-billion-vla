@@ -130,11 +130,16 @@ The SmolVLA policy trained on `HuggingFaceVLA/libero` expects **relative** (delt
 actions, which is lerobot's default `--env.control_mode`; leave it unless you retrain on an
 absolute-action dataset.
 
-#### Result
+### Results
 
-| Task | SR |
-|---|---|
-| Object  | T.B.D |
-| Goal    | T.B.D |
-| Spatial | T.B.D |
-| Long    | T.B.D |
+Success rate (%) across the four LIBERO task suites over training steps (50 episodes × 10 tasks
+= 500 episodes per suite):
+
+| Steps | Spatial | Object | Goal | Long (LIBERO-10) | Average |
+|------:|--------:|-------:|-----:|-----------------:|--------:|
+| 15k   | 51.6    | 62.8   | 66.8 | 29.6             | 52.7    |
+| 20k   | 60.6    | 61.6   | 67.6 | 38.2             | 57.0    |
+| 25k   | 64.2    | 66.2   | 69.8 | 39.6             | 60.0    |
+| 30k   | **64.4**| **69.6**   | 73.2 | **43.2**         | **62.6**|
+| 35k   | 60.4    | 67.0   | 72.4 | 40.2             | 60.0    |
+| 40k   | 63.2    | 67.2   | **74.6** | 39.2         | 61.1    |
