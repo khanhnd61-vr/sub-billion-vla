@@ -1,0 +1,86 @@
+diff --git a/src/lerobot/datasets/utils_must.py b/src/lerobot/datasets/utils_must.py
+index 11af901..c32cf64 100644
+--- a/src/lerobot/datasets/utils_must.py
++++ b/src/lerobot/datasets/utils_must.py
+@@ -382,14 +382,40 @@ def pad_tensor_to_shape(tensor: torch.Tensor, target_shape: tuple, pad_value: fl
+     return F.pad(tensor, pad, value=pad_value)
+ 
+ 
++def resize_image_with_pad(img: torch.Tensor, width: int, height: int, pad_value: float = 0.0) -> torch.Tensor:
++    """Aspect-preserving resize of a (C, H, W) image to fit (height, width), padding top/left.
++
++    Mirrors `resize_with_pad` in the SmolVLA2 model, so resizing here (in the collate, while each
++    image is still at its native resolution) is equivalent to the resize the policy applies later.
++    Doing it here keeps the DataLoader's shared-memory footprint small on multi-resolution datasets
++    (the cause of host-RAM OOM) and avoids zero-padding small images up to a large common canvas.
++    """
++    _, cur_height, cur_width = img.shape
++    ratio = max(cur_width / width, cur_height / height)
++    resized_height = int(cur_height / ratio)
++    resized_width = int(cur_width / ratio)
++    resized = F.interpolate(
++        img.unsqueeze(0), size=(resized_height, resized_width), mode="bilinear", align_corners=False
++    ).squeeze(0)
++    pad_height = max(0, int(height - resized_height))
++    pad_width = max(0, int(width - resized_width))
++    # pad on left and top, matching the model's resize_with_pad
++    return F.pad(resized, (pad_width, 0, pad_height, 0), value=pad_value)
++
++
+ def multidataset_collate_fn(
+     batch: List[Dict[str, torch.Tensor]],
+     keys_to_max_dim: Dict[str, tuple] = {},
+     pad_value: float = 0.0,
++    image_resize_hw: tuple | None = None,
+ ) -> Dict[str, torch.Tensor]:
+     """
+     Pads tensors to given target shape (if provided), otherwise uses per-batch max.
+     Supports 1D (e.g. action), 3D (e.g. [C,H,W] images).
++
++    If `image_resize_hw` (width, height) is given, image tensors are resized to that size instead
++    of being zero-padded up to a common canvas. This keeps the DataLoader's shared memory small on
++    multi-resolution datasets (preventing host-RAM OOM) and matches the policy's downstream resize.
+     """
+     collated_batch = [{} for _ in range(len(batch))]
+     batch_keys = batch[0].keys()
+@@ -403,6 +429,16 @@ def multidataset_collate_fn(
+                 collated_batch[i][key] = values[i]
+             continue
+ 
++        # Images: resize to the policy's input size instead of padding up to a large common
++        # canvas (which wastes shared memory and squishes small images into a corner).
++        is_image = any(k in key for k in (OBS_IMAGE, OBS_IMAGE_2, OBS_IMAGE_3))
++        if image_resize_hw is not None and is_image and sample.ndim == 3:
++            for i in range(len(batch)):
++                collated_batch[i][key] = resize_image_with_pad(
++                    values[i], image_resize_hw[0], image_resize_hw[1], pad_value=pad_value
++                )
++            continue
++
+         # use user-specified shape if available
+         if key in keys_to_max_dim and keys_to_max_dim[key] is not None:
+             target_shape = keys_to_max_dim[key]
+diff --git a/src/lerobot/scripts/train.py b/src/lerobot/scripts/train.py
+index bd43220..fed339a 100644
+--- a/src/lerobot/scripts/train.py
++++ b/src/lerobot/scripts/train.py
+@@ -229,12 +229,17 @@ def train(cfg: TrainPipelineConfig):
+     
+     keys_to_max_dim = getattr(dataset.meta, "keys_to_max_dim", {})
+     keys_to_max_dim = {
+-    "action": (32,),
+-    "observation.state": (32,),
+-    "observation.images.image": (3, 1080, 1920),
+-    "observation.images.image2": (3, 1080, 1920),
+-}
+-    collate_fn = partial(multidataset_collate_fn, keys_to_max_dim=keys_to_max_dim)
++        "action": (32,),
++        "observation.state": (32,),
++    }
++    image_resize_hw = getattr(cfg.policy, "resize_imgs_with_padding", None)
++    collate_fn = partial(
++        multidataset_collate_fn, keys_to_max_dim=keys_to_max_dim, image_resize_hw=image_resize_hw
++    )
+     dataloader = torch.utils.data.DataLoader(
+         dataset,
+         collate_fn=collate_fn,

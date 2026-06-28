@@ -117,13 +117,16 @@ Because of the mismatch between smolvla_base's action expert (3-camera embodimen
 lerobot-native eval. `--eval.n_episodes` is **per task**, so 50 × 10 tasks = 500 episodes,
 matching the VLA-Adapter protocol above:
 ```bash
-MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-eval \
-  --policy.path=outputs/smolvla-libero/checkpoints/last/pretrained_model \
-  --env.type=libero \
-  --env.task=libero_spatial \
-  --eval.batch_size=1 \
-  --eval.n_episodes=50 \
-  --env.max_parallel_tasks=1
+CKPT=outputs/smolvla-libero/checkpoints/030000/pretrained_model
+for SUITE in libero_spatial libero_object libero_goal libero_10; do
+  echo "==== $SUITE ===="
+  MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-eval \
+    --policy.path=$CKPT \
+    --env.type=libero --env.task=$SUITE \
+    --eval.batch_size=1 --eval.n_episodes=50 \
+    --env.max_parallel_tasks=1 \
+    --output_dir=outputs/eval/030000/$SUITE
+done
 ```
 
 The SmolVLA policy trained on `HuggingFaceVLA/libero` expects **relative** (delta) end-effector

@@ -1,0 +1,78 @@
+[project]
+# Distribution name is "lerobot" so that `importlib.metadata.version("lerobot")`
+# in src/lerobot/__version__.py resolves, and it matches the import package name.
+name = "lerobot"
+version = "0.1.0"
+description = "VLAb: Your Laboratory for Pretraining VLAs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Dana Aubakirova" },
+    { name = "Mustafa Shukor" },
+    { name = "Jade Cholgari" },
+    { name = "Leandro von Werra" },
+]
+
+# Mirrors the `pip:` block of environment.yml, plus torch/torchvision which conda
+# previously installed via `pytorch-cuda`. The CUDA build is selected by the
+# [tool.uv.sources] / [[tool.uv.index]] sections below, not by a version pin here.
+dependencies = [
+    "torch>=2.2.1",
+    "torchvision",
+    # Upper bounds matter: environment.yml left these unpinned, but the code was
+    # written for the mid-2025 stack. Newer majors break it — datasets 5.x returns
+    # `Column` objects the collate fn can't stack, hub 1.x drops the extras below,
+    # and transformers 5.x shifts the SmolVLM internals the policy relies on.
+    "transformers>=4.50.3,<4.54.0",
+    "accelerate>=1.7.0",
+    "datasets>=2.19.0,<3.0",
+    "av>=14.2.0",
+    "safetensors>=0.4.3",
+    "draccus==0.10.0",
+    "huggingface-hub[hf-transfer,cli]>=0.27.1,<1.0",
+    "termcolor>=2.4.0",
+    "einops>=0.8.0",
+    "imageio[ffmpeg]>=2.34.0",
+    "jsonlines>=4.0.0",
+    "deepdiff>=7.0.1",
+    "packaging>=24.2",
+    "wandb>=0.16.3",
+    "trackio>=0.7.0",
+    # Imported by the code but missing from environment.yml:
+    "peft>=0.11.0",        # LoRA support, imported when the smolvla2 policy loads
+    "rerun-sdk>=0.16.0",   # `import rerun` — dataset/episode visualization
+    "num2words>=0.5.13",   # required at runtime by the SmolVLM processor
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# src-layout: the import package `lerobot` lives in src/lerobot.
+[tool.hatch.build.targets.wheel]
+packages = ["src/lerobot"]
+
+# ---------------------------------------------------------------------------
+# CUDA-enabled PyTorch wheels.
+#
+# Conda used `pytorch-cuda=11.8` to install the CUDA runtime. With uv there is
+# no conda CUDA toolkit: the wheel bundles its own runtime, and only your NVIDIA
+# driver has to be new enough. This box (RTX 3090, driver 595, system CUDA 12.8)
+# is fine with the cu124 wheels selected below.
+#
+# To switch CUDA versions, change the URL to one of:
+#   cu118  https://download.pytorch.org/whl/cu118   (match the old conda pin)
+#   cu124  https://download.pytorch.org/whl/cu124   (default here)
+#   cu126  https://download.pytorch.org/whl/cu126
+#   cu128  https://download.pytorch.org/whl/cu128   (match your system CUDA 12.8)
+#   cpu    https://download.pytorch.org/whl/cpu     (no GPU)
+# ---------------------------------------------------------------------------
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
