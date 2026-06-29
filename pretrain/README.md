@@ -1,6 +1,8 @@
 # Pretrain SmolVLA using VLAb
 
-Clone VLAb - framework to pretrain SmolVLA - pin the commit, and apply `fix_pad.patch`.
+## Train
+
+Clone [pretraining framework](https://github.com/huggingface/VLAb) at pinned commit, and apply `fix_pad.patch`.
 ```bash
 cd /path/to/sub-billion-vla/pretrain
 git clone https://github.com/huggingface/VLAb.git
@@ -9,7 +11,7 @@ git checkout 10558f6f958902c1b5ff5eed76ff5766fab6f64b
 git apply ../fix_pad.patch
 ```
 
-Exclude some episodes
+Download [pretrain dataset](https://huggingface.co/datasets/HuggingFaceVLA/community_dataset_v2) and exclude some episodes
 ```bash
 ROOT=/path/to/data/HuggingFaceVLA/community_dataset_v2
 hf download HuggingFaceVLA/community_dataset_v2 --local-dir $ROOT --repo-type dataset
@@ -18,14 +20,14 @@ REPO_IDS=$(cd "$ROOT" && find . -name info.json -path '*/meta/*' -printf '%h\n' 
            | sed 's|/meta$||; s|^\./||' | sort -u | grep -Evx "$EXCLUDE" | paste -sd,)
 ```
 
-Install the venv with uv. VLAb
+Install the venv with [uv](https://github.com/astral-sh/uv)
 ```bash
 cd /path/to/sub-billion-vla/pretrain/VLAb
 cp ../pyproject.toml ../uv.lock .
 uv sync
 ```
 
-Pretrain.
+**Stage 1** - Pretrain
 ```bash
 uv run accelerate launch --config_file accelerate_configs/single_gpu.yaml \
     src/lerobot/scripts/train.py \
@@ -53,7 +55,7 @@ OUT=outputs/converted_smolvla_libero_init/pretrained_model
 .venv-smolvla/bin/python pretrain/convert_vlab_to_lerobot.py "$SRC" "$OUT"
 ```
 
-Finetune
+**Stage 2** - Finetune
 ```bash
 cd /path/to/sub-billion-vla && source .venv-smolvla/bin/activate
 MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-train \
@@ -64,3 +66,30 @@ MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-train \
   --output_dir=outputs/smolvla-libero-from-vlab \
   --batch_size=64
 ```
+
+## Eval
+```bash
+CKPT=outputs/smolvla-libero-from-vlab/checkpoints/030000/pretrained_model
+for SUITE in libero_spatial libero_object libero_goal libero_10; do
+  echo "==== $SUITE ===="
+  MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 lerobot-eval \
+    --policy.path=$CKPT \
+    --env.type=libero --env.task=$SUITE \
+    --eval.batch_size=1 --eval.n_episodes=50 \
+    --env.max_parallel_tasks=1 \
+    --output_dir=outputs/eval_2stage/030000/$SUITE
+done
+```
+
+
+## Results
+
+Compare the results of 1-stage (finetune) and 2-stage (pretrain+finetune) SmolVLA
+
+|  Task   | 1-stage | 2-stage |
+| ------: |--------:|-------: |
+| Spatial | 64.4    | 68.4    |
+| Object  | 69,6    | 0.0     |
+| Goal    | 73.2    | 76.2    |
+| Long    | 43.2    | 45.6    |
+| Average | 62.6    | 47.55   |
