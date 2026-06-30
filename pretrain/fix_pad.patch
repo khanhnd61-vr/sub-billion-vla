@@ -61,10 +61,10 @@ index 11af901..c32cf64 100644
          if key in keys_to_max_dim and keys_to_max_dim[key] is not None:
              target_shape = keys_to_max_dim[key]
 diff --git a/src/lerobot/scripts/train.py b/src/lerobot/scripts/train.py
-index bd43220..fed339a 100644
+index bd43220..607cde0 100644
 --- a/src/lerobot/scripts/train.py
 +++ b/src/lerobot/scripts/train.py
-@@ -229,12 +229,17 @@ def train(cfg: TrainPipelineConfig):
+@@ -229,12 +229,13 @@ def train(cfg: TrainPipelineConfig):
      
      keys_to_max_dim = getattr(dataset.meta, "keys_to_max_dim", {})
      keys_to_max_dim = {

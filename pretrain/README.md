@@ -33,17 +33,30 @@ uv run accelerate launch --config_file accelerate_configs/single_gpu.yaml \
     src/lerobot/scripts/train.py \
     --policy.type=smolvla2 \
     --policy.repo_id=HuggingFaceTB/SmolVLM2-500M-Video-Instruct \
+    --policy.load_vlm_weights=true \
     --policy.use_amp=true \
+    --policy.max_action_dim=32 \
+    --policy.max_state_dim=32 \
+    --policy.optimizer_lr=5e-4 \
+    --policy.optimizer_lr_vlm=1e-4 \
+    --policy.scheduler_warmup_steps=1000 \
+    --policy.scheduler_decay_steps=50000 \
+    --policy.scheduler_decay_lr=1e-6 \
     --dataset.repo_id="$REPO_IDS" \
     --dataset.root="$ROOT" \
     --dataset.video_backend=pyav \
     --dataset.features_version=2 \
+    --dataset.use_imagenet_stats=false \
+    --dataset.image_transforms.enable=true \
+    --dataset.max_num_images=2 \
+    --dataset.max_image_dim=256 \
     --output_dir="./outputs/training" \
     --batch_size=32 \
     --num_workers=4 \
-    --steps=200000 \
+    --steps=100000 \
+    --save_freq=10000 \
     --wandb.enable=true \
-    --wandb.project="smolvla2-training"
+    --wandb.project="smolvla2-pretrain-again"
 ```
 
 Convert ckpt
