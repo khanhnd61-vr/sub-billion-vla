@@ -84,12 +84,24 @@ done
 
 ## Results
 
-Compare the results of 1-stage (finetune) and 2-stage (pretrain+finetune) SmolVLA
+Compare the results of 1-stage (finetune) and 2-stage (pretrain+finetune) SmolVLA. Both are finetuned with 30k steps.
 
-|  Task   | 1-stage | 2-stage |
-| ------: |--------:|-------: |
-| Spatial | 64.4    | 68.4    |
-| Object  | 69,6    | 0.0     |
-| Goal    | 73.2    | 76.2    |
-| Long    | 43.2    | 45.6    |
-| Average | 62.6    | 47.55   |
+|  Task                 | 1-stage | 2-stage  |
+| ------:               |--------:|-------:  |
+| Spatial               | 64.4    | **68.4** |
+| Object                | 69.6    | 0.0      |
+| Goal                  | 73.2    | **76.2** |
+| Long                  | 43.2    | **45.6** |
+| **Average (w obj)**   | **62.6**| 47.55    |
+| **Average (w/o obj)** | 60.27   | **63.4** |
+
+Evaluation of 2-stage model over finetune steps
+
+
+|  Task   | 15k   | 20k   | 30k   | 35k   | 40k   |
+| ------: |------:|------:|------:|------:|------:|
+| Spatial | 63.4  | 53.2  | 68.4  | 66.8  | 68.6  |
+| Object  | 0.0   | 0.0   | 0.0   | 0.0   | 0.0   |
+| Goal    | 63.6  | 69.6  | 76.2  | 78.2  | 77.2  |
+| Long    | 21.8  | 32.2  | 45.6  | 40.8  | 45.6  |
+| Average | -     | -     | -     | -     | -     |
